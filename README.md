@@ -14,4 +14,6 @@ type `node app.js [method] [port] [path] [payload]` into your terminal window.
 - path: path to follow after protocol-hostname-port component of URL. should include query strings or anything else needed to deliver request correctly. **path should be at least or begin with a single forward slash**
 - payload: required for posts. supports only json. to save you the trouble of trying to figure out how to pass json through the command line here's an example (tested in windows environment): "{ \\"name\\": \\"david-learns\\", \\"count\\": 1 }"
 
-'get' method expects to receive json
+## notes
+- 'get' method expects to receive json
+- all requests are sent to localhost (127.0.0.1)
