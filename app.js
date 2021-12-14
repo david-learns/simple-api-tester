@@ -32,9 +32,6 @@ if (method.toLowerCase() === 'get') {
 function sendGet() {
 
     http.get('http://localhost:' + port + path, res => {
-        res.on('error', err => {
-            console.error(`${err.message}`);
-        });
         res.setEncoding('utf-8');
         let rawData = '';
         res.on('data', chunk => {
@@ -45,10 +42,12 @@ function sendGet() {
                 const jsonData = JSON.parse(rawData)
                 console.log(jsonData);
             } catch (err) {
-                console.error(`${err.message}`);
+                console.error(err.message);
             }
         })
-    });
+    }).on('error', err => {
+        console.error(err.message);
+    })
 }
 
 function sendPost(options, payload) {
@@ -66,7 +65,7 @@ function sendPost(options, payload) {
     });
 
     req.on('error', err => {
-        console.error(`${err.message}`);
+        console.error(err.message);
     });
 
     req.write(payload);
