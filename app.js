@@ -1,4 +1,5 @@
 'use strict';
+const { resolveSoa } = require('dns');
 const http = require('http');
 const util = require('util');
 
@@ -30,7 +31,7 @@ function run() {
         
         sendGet();
         
-    } else if (method.toLowerCase() === 'post') {
+    } else if (method.toLowerCase() === 'post' && payload !== undefined) {
         
         sendPost(postOptions, payload);
         
@@ -55,31 +56,36 @@ function sendGet() {
 
     http.get('http://localhost:' + port + path, res => {
 
-        res.setEncoding('utf-8');
-        let rawData = '';
-        res.on('data', chunk => {
-            rawData += chunk;
-        });
-
-        res.on('end', () => {
-
-            try {
-
-                const responseObj = {
-                    STATUS: {
-                        code: res.statusCode,
-                        message: res.statusMessage
-                    },
-                    HEADERS: res.headers,
-                    BODY: JSON.parse(rawData)
-                };
-
-                console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
-
-            } catch (err) {
-                console.log(err.message);
+        const responseObj = {
+            STATUS: {
+                code: res.statusCode,
+                message: res.statusMessage
             }
-        });
+        };
+
+        if (res.statusCode === 200) {
+            
+            res.setEncoding('utf-8');
+            let rawData = '';
+            res.on('data', chunk => {
+                rawData += chunk;
+            });
+            
+            res.on('end', () => {
+                
+                try {
+                    
+                    responseObj.HEADERS = res.headers;
+                    responseObj.BODY = JSON.parse(rawData);
+
+                } catch (err) {
+                    console.log(err.message);
+                }
+
+            });
+        }
+
+        console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
 
     }).on('error', err => {
         console.log(err.message);
@@ -91,34 +97,39 @@ function sendPost(options, payload) {
     
     const req = http.request(options, res => {
 
-        try {
+        const responseObj = {
+            STATUS: {
+                code: res.statusCode,
+                message: res.statusMessage
+            }
+        };
 
-            const requestObj = { OPTIONS: options, PAYLOAD: JSON.parse(payload) };
-        
-            console.log(`\nREQUEST: ${util.inspect(requestObj, utilOptions)}`);
-
-            res.setEncoding('utf-8');
-            let body = '';
-            res.on('data', chunk => {
-                body += chunk;
-            });
-
-            const responseObj = {
-                STATUS: {
-                    code: res.statusCode,
-                    message: res.statusMessage
-                },
-                HEADERS: res.headers,
-                BODY: body
-            };
-
-            res.on('end', () => {
-                console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
-            });
-
-        } catch (err) {
-            console.log(err.message);
+        if (Math.trunc(res.statusCode / 100) === 2) {
+            
+            try {
+                
+                const requestObj = { OPTIONS: options, PAYLOAD: JSON.parse(payload) };
+                console.log(`\nREQUEST: ${util.inspect(requestObj, utilOptions)}`);
+                
+                res.setEncoding('utf-8');
+                let body = '';
+                res.on('data', chunk => {
+                    body += chunk;
+                });
+                
+                res.on('end', () => {
+                    
+                    responseObj.HEADERS = res.headers;
+                    responseObj.BODY = body;
+                    
+                });
+                
+            } catch (err) {
+                console.log(err.message);
+            }
         }
+
+        console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
     });
 
     req.on('error', err => {
