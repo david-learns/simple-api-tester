@@ -62,29 +62,31 @@ function sendGet() {
             }
         };
 
-        if (res.statusCode === 200) {
+        
+        res.setEncoding('utf-8');
+        let rawData = '';
+        res.on('data', chunk => {
+            rawData += chunk;
+        });
+        
+        res.on('end', () => {
             
-            res.setEncoding('utf-8');
-            let rawData = '';
-            res.on('data', chunk => {
-                rawData += chunk;
-            });
-            
-            res.on('end', () => {
+            try {
                 
-                try {
-                    
+                if (res.statusCode === 200) {
                     responseObj.HEADERS = res.headers;
                     responseObj.BODY = JSON.parse(rawData);
-
-                } catch (err) {
-                    console.log(err.message);
                 }
 
-            });
-        }
+                console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
 
-        console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
+            } catch (err) {
+                console.log(err.message);
+            }
+
+        });
+
+        
 
     }).on('error', err => {
         console.log(err.message);
@@ -103,32 +105,32 @@ function sendPost(options, payload) {
             }
         };
 
-        if (Math.trunc(res.statusCode / 100) === 2) {
+        
+        try {
             
-            try {
+            const requestObj = { OPTIONS: options, PAYLOAD: JSON.parse(payload) };
+            console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
+            
+            res.setEncoding('utf-8');
+            let body = '';
+            res.on('data', chunk => {
+                body += chunk;
+            });
+            
+            res.on('end', () => {
                 
-                const requestObj = { OPTIONS: options, PAYLOAD: JSON.parse(payload) };
-                console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
-                
-                res.setEncoding('utf-8');
-                let body = '';
-                res.on('data', chunk => {
-                    body += chunk;
-                });
-                
-                res.on('end', () => {
-                    
+                if (Math.trunc(res.statusCode / 100) === 2) {
                     responseObj.HEADERS = res.headers;
-                    responseObj.BODY = body;
-                    
+                    responseObj.BODY = JSON.parse(body);
+                }
+                
+                console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
+
                 });
                 
             } catch (err) {
                 console.log(err.message);
             }
-        }
-
-        console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
     });
 
     req.on('error', err => {
