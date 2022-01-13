@@ -1,5 +1,4 @@
 'use strict';
-const { resolveSoa } = require('dns');
 const http = require('http');
 const util = require('util');
 
