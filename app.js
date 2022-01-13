@@ -61,7 +61,6 @@ function sendGet() {
                 message: res.statusMessage
             }
         };
-
         
         res.setEncoding('utf-8');
         let rawData = '';
@@ -86,8 +85,6 @@ function sendGet() {
 
         });
 
-        
-
     }).on('error', err => {
         console.log(err.message);
     })
@@ -104,7 +101,6 @@ function sendPost(options, payload) {
                 message: res.statusMessage
             }
         };
-
         
         try {
             
