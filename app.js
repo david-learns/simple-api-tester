@@ -16,7 +16,7 @@ const postOptions = {
     }
 };
 
-const utilOptions = {
+const inspectOptions = {
     colors: true,
     compact: false,
     depth: 5,
@@ -44,7 +44,7 @@ function run() {
         method: \'get\' or \'post\'
         port: port on which server is running
         path: path of api endpoint, must provide at least \'/\'
-        payload: post, json, pass in string with escapes, no spaces:
+        payload: required for post, json, include escapes, no spaces:
         \"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"`);
         
     }
@@ -84,7 +84,7 @@ function sendGet() {
             });
         }
 
-        console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
+        console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
 
     }).on('error', err => {
         console.log(err.message);
@@ -108,7 +108,7 @@ function sendPost(options, payload) {
             try {
                 
                 const requestObj = { OPTIONS: options, PAYLOAD: JSON.parse(payload) };
-                console.log(`\nREQUEST: ${util.inspect(requestObj, utilOptions)}`);
+                console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
                 
                 res.setEncoding('utf-8');
                 let body = '';
@@ -128,7 +128,7 @@ function sendPost(options, payload) {
             }
         }
 
-        console.log(`\nRESPONSE: ${util.inspect(responseObj, utilOptions)}`);
+        console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
     });
 
     req.on('error', err => {
