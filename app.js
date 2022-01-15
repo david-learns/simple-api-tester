@@ -30,7 +30,7 @@ const userErrorMessage = `
      node app.js method port path payload
 
  method: \'get\' or \'post\'
- port: port on which server is running
+ port: port on which server is listening
  path: path of api endpoint, must provide at least \'/\'
  payload: required for post, json, include escapes, no spaces:
  \"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"`
@@ -74,12 +74,11 @@ function sendGet() {
                 HEADERS: res.headers
             };
 
-            if (res.statusCode === 200) {
-                try {
-                    responseObj.BODY = JSON.parse(rawData);
-                } catch (err) {
-                    console.log('unable to parse response body data as json\n', err.message);
-                }
+            try {
+                responseObj.BODY = JSON.parse(rawData);
+            } catch (err) {
+                console.log('unable to parse response body data as json\n', err.message);
+                responseObj.BODY = rawData;
             }
 
             console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
