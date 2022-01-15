@@ -7,11 +7,17 @@ const port = process.argv[3];
 const path = process.argv[4];
 const payload = process.argv[5];
 
+const getOptions = {
+    port: port,
+    method: 'GET',
+    path: path,
+};
+
 const deleteOptions = {
     port: port,
     method: 'DELETE',
     path: path,
-}
+};
 
 const patchOptions = {
     port: port,
@@ -20,7 +26,7 @@ const patchOptions = {
     headers: {
         'Content-Type': 'application/json',
     },
-}
+};
 
 const postOptions = {
     port: port,
@@ -56,7 +62,7 @@ function run() {
     
     if (method.toLowerCase() === 'get') {
         
-        sendGet();
+        sendGet(getOptions);
 
     } else if (method.toLowerCase() === 'delete') {
 
@@ -78,43 +84,7 @@ function run() {
 }
     
 
-function sendGet() {
-
-    http.get('http://localhost:' + port + path, res => {
-
-        res.setEncoding('utf-8');
-        let rawData = '';
-        res.on('data', chunk => {
-            rawData += chunk;
-        });
-
-        res.on('end', () => {
-
-            const responseObj = {
-                STATUS: {
-                    code: res.statusCode,
-                    message: res.statusMessage
-                },
-                HEADERS: res.headers
-            };
-
-            try {
-                responseObj.BODY = JSON.parse(rawData);
-            } catch (err) {
-                console.log('unable to parse response body data as json\n', err.message);
-                responseObj.BODY = rawData;
-            }
-
-            console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
-        });
-
-    }).on('error', err => {
-        console.log(err.message);
-    })
-}
-
-
-function sendDelete(options) {
+function sendGet(options) {
     
     const req = http.request(options, res => {
 
@@ -151,6 +121,9 @@ function sendDelete(options) {
 
     req.end();
 }
+
+
+const sendDelete = sendGet;
 
 
 function sendPayload(options, payload) {
