@@ -89,18 +89,7 @@ function request(options, payload) {
     const req = http.request(options, res => {
 
         if (payload !== undefined) {
-
-            const requestObj = { OPTIONS: options, PAYLOAD: payload };
-            try {
-                requestObj.PAYLOAD = JSON.parse(payload);
-            } catch (err) {
-                console.log(
-                    '\nunable to parse cmd arg payload as json, error:\n ' + err.message + 
-                    '\n\npayload: required for post and patch, json, include escapes,' +
-                    '\nno spaces outside of name/value pairs:' +
-                    '\n\"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"');
-            }
-
+            const requestObj = buildRequestObj(payload, options);
             console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
         }
 
@@ -111,24 +100,7 @@ function request(options, payload) {
         });
         
         res.on('end', () => {
-
-            const responseObj = {
-                STATUS: {
-                    code: res.statusCode,
-                    message: res.statusMessage
-                },
-                HEADERS: res.headers
-            };
-            
-            try {
-                responseObj.BODY = JSON.parse(body);
-            } catch (err) {
-                console.log('\nerror: unable to parse response body data as json\n', err.message);
-                const brIndex = body.indexOf('<br>');
-                const endIndex = brIndex === -1 ? body.length : brIndex + 4;
-                responseObj.BODY = body.slice(0, endIndex);
-            }
-            
+            const responseObj = buildResponseObj(res, body);
             console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
         });
     });
@@ -139,6 +111,46 @@ function request(options, payload) {
 
     if (payload !== undefined) req.write(payload);
     req.end();
+}
+
+
+function buildRequestObj(payload, options) {
+
+    const requestObj = { OPTIONS: options, PAYLOAD: payload };
+    try {
+        requestObj.PAYLOAD = JSON.parse(payload);
+    } catch (err) {
+        console.log(
+            '\nunable to parse cmd arg payload as json, error:\n ' + err.message + 
+            '\n\npayload: required for post and patch, json, include escapes,' +
+            '\nno spaces outside of name/value pairs:' +
+            '\n\"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"');
+    }
+
+    return requestObj;
+}
+
+
+function buildResponseObj(res, body) {
+    
+    const responseObj = {
+        STATUS: {
+            code: res.statusCode,
+            message: res.statusMessage
+        },
+        HEADERS: res.headers
+    };
+    
+    try {
+        responseObj.BODY = JSON.parse(body);
+    } catch (err) {
+        console.log('\nerror: unable to parse response body data as json\n', err.message);
+        const brIndex = body.indexOf('<br>');
+        const endIndex = brIndex === -1 ? body.length : brIndex + 4;
+        responseObj.BODY = body.slice(0, endIndex);
+    }
+
+    return responseObj;
 }
 
 
