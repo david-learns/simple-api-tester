@@ -61,20 +61,20 @@ const userErrorMessage = `
 function run() {
     
     if (method.toLowerCase() === 'get') {
-        
-        sendGet(getOptions);
+
+        request(getOptions);
 
     } else if (method.toLowerCase() === 'delete') {
 
-        sendDelete(deleteOptions);
+        request(deleteOptions);
 
     } else if (method.toLowerCase() === 'patch' && payload !== undefined) {
 
-        sendPayload(patchOptions, payload);
+        request(patchOptions, payload);
         
     } else if (method.toLowerCase() === 'post' && payload !== undefined) {
         
-        sendPayload(postOptions, payload);
+        request(postOptions, payload);
         
     } else {
         
@@ -82,68 +82,28 @@ function run() {
         
     }
 }
-    
 
-function sendGet(options) {
+
+function request(options, payload) {
     
     const req = http.request(options, res => {
 
-        res.setEncoding('utf-8');
-        let body = '';
-        res.on('data', chunk => {
-            body += chunk;
-        });
-        
-        res.on('end', () => {
+        if (payload !== undefined) {
 
-            const responseObj = {
-                STATUS: {
-                    code: res.statusCode,
-                    message: res.statusMessage
-                },
-                HEADERS: res.headers
-            };
-            
+            const requestObj = { OPTIONS: options, PAYLOAD: payload };
             try {
-                responseObj.BODY = JSON.parse(body);
+                requestObj.PAYLOAD = JSON.parse(payload);
             } catch (err) {
-                console.log('\nerror: unable to parse response body data as json\n', err.message);
-                responseObj.BODY = body.slice(0, body.indexOf('<br>') + 4);
+                console.log(
+                    '\nunable to parse cmd arg payload as json, error:\n ' + err.message + 
+                    '\n\npayload: required for post and patch, json, include escapes,' +
+                    '\nno spaces outside of name/value pairs:' +
+                    '\n\"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"');
             }
-            
-            console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
-        });
-    });
 
-    req.on('error', err => {
-        console.log(err.message);
-    });
-
-    req.end();
-}
-
-
-const sendDelete = sendGet;
-
-
-function sendPayload(options, payload) {
-    
-    const req = http.request(options, res => {
-
-        const requestObj = { OPTIONS: options, PAYLOAD: payload };
-        
-        try {
-            requestObj.PAYLOAD = JSON.parse(payload);
-        } catch (err) {
-            console.log(
-                '\nunable to parse cmd arg payload as json, error:\n ' + err.message + 
-                '\n\npayload: required for post and patch, json, include escapes,' +
-                '\nno spaces outside of name/value pairs:' +
-                '\n\"{\\"food\\":\\"juevos rancheros\\",\\"cost\\":9.99}\"');
+            console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
         }
 
-        console.log(`\nREQUEST: ${util.inspect(requestObj, inspectOptions)}`);
-
         res.setEncoding('utf-8');
         let body = '';
         res.on('data', chunk => {
@@ -164,7 +124,9 @@ function sendPayload(options, payload) {
                 responseObj.BODY = JSON.parse(body);
             } catch (err) {
                 console.log('\nerror: unable to parse response body data as json\n', err.message);
-                responseObj.BODY = body.slice(0, body.indexOf('<br>') + 4);
+                const brIndex = body.indexOf('<br>');
+                const endIndex = brIndex === -1 ? body.length : brIndex + 4;
+                responseObj.BODY = body.slice(0, endIndex);
             }
             
             console.log(`\nRESPONSE: ${util.inspect(responseObj, inspectOptions)}`);
@@ -175,7 +137,7 @@ function sendPayload(options, payload) {
         console.log(err.message);
     });
 
-    req.write(payload);
+    if (payload !== undefined) req.write(payload);
     req.end();
 }
 
